@@ -14,7 +14,8 @@ const outfit = Outfit({
 
 export const metadata: Metadata = {
   title: "Sprint OS",
-  description: "An execution engine.",
+  description: "AI-powered operating system for sprints",
+  manifest: "/manifest.json",
 };
 
 export default async function RootLayout({

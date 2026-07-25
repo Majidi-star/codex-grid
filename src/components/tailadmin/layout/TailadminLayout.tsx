@@ -7,6 +7,8 @@ import Backdrop from "@/components/tailadmin/layout/Backdrop";
 import React from "react";
 import { GridIcon, CalenderIcon, UserCircleIcon, PageIcon, PlugInIcon, ListIcon } from "@/components/tailadmin/icons/index";
 
+import ChatSidebar from "@/components/chat/ChatSidebar";
+
 export default function TailadminLayout({
   children,
   currentDayNumber,
@@ -32,13 +34,17 @@ export default function TailadminLayout({
     { name: "Weekly Summaries", icon: <PageIcon />, path: `/week/${currentWeekNumber}/summary` },
     { name: "Six-Week Reviews", icon: <PageIcon />, path: `/block/${currentBlockNumber}` },
     { name: "Setup / New Sprint", icon: <PlugInIcon />, path: "/setup" },
-    { name: "Codex Laws", icon: <ListIcon />, path: "/codex" },
+    { name: "The Codex", icon: <ListIcon />, path: "/codex" },
     { name: "All Sprints", icon: <ListIcon />, path: "/sprints" },
+  ];
+
+  const othersItems = [
+    { name: "AI Settings", icon: <UserCircleIcon />, path: "/settings" }
   ];
 
   return (
     <div className="min-h-screen xl:flex">
-      <AppSidebar navItems={navItems} othersItems={[]} />
+      <AppSidebar navItems={navItems} othersItems={othersItems} />
       <Backdrop />
       <div
         className={`flex-1 transition-all duration-300 ease-in-out ${mainContentMargin}`}
@@ -46,6 +52,7 @@ export default function TailadminLayout({
         <AppHeader />
         <div className="p-4 mx-auto max-w-7xl md:p-6">{children}</div>
       </div>
+      <ChatSidebar />
     </div>
   );
 }

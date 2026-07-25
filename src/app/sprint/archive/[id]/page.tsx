@@ -75,6 +75,28 @@ export default async function SprintArchivePage({ params }: { params: { id: stri
     }
     return deepWorkHours;
   });
+
+  const workData = Array.from({ length: 7 }, (_, i) => {
+    const dayLog = currentWeekLogs.find(l => l.dayNumber === weekStartDay + i);
+    let workHours = 0;
+    if (dayLog && dayLog.opsLogEntries) {
+      workHours = dayLog.opsLogEntries
+        .filter(entry => entry.activityType === "deep_work" || entry.activityType === "work")
+        .reduce((acc, entry) => {
+          try {
+            const start = new Date(`1970-01-01T${entry.startTime}:00`);
+            const end = new Date(`1970-01-01T${entry.endTime}:00`);
+            let hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+            if (hours < 0) hours += 24;
+            return acc + (hours > 0 ? hours : 0);
+          } catch (e) {
+            return acc;
+          }
+        }, 0);
+    }
+    return workHours;
+  });
+  
   const deepWorkTarget = Array.from({ length: 7 }, () => 2.8);
   const deepWorkCategories = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -123,7 +145,8 @@ export default async function SprintArchivePage({ params }: { params: { id: stri
         <div className="mt-8 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
           <DeepWorkChart 
             categories={deepWorkCategories} 
-            data={deepWorkData} 
+            deepWorkData={deepWorkData} 
+            workData={workData}
             target={deepWorkTarget} 
           />
         </div>

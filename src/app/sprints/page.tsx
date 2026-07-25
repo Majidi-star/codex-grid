@@ -35,7 +35,7 @@ export default async function SprintsPage() {
       {sprints.length === 0 ? (
         <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700">
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No sprints found</h3>
-          <p className="text-gray-500">You haven't initialized any 12-week sprints yet.</p>
+          <p className="text-gray-500">You haven&apos;t initialized any 12-week sprints yet.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -1,20 +1,29 @@
 import React from "react";
 import { getAllCodexLaws } from "@/lib/actions/codexLaw";
+import { getCodexBlades, getCodexProfile } from "@/lib/actions/codex";
 import CodexClient from "./CodexClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function CodexPage() {
-  const laws = await getAllCodexLaws();
+  const doctrineLaws = await getAllCodexLaws("doctrine");
+  const gateKeeperLaws = await getAllCodexLaws("gatekeeper");
+  const blades = await getCodexBlades();
+  const profile = await getCodexProfile();
 
   return (
     <div className="max-w-5xl mx-auto py-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Codex Laws</h1>
-        <p className="text-gray-500 mt-1">Manage the principles and laws that govern your sprints.</p>
+      <div className="mb-8 text-center">
+        <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">The Codex</h1>
+        <p className="text-gray-500 mt-2 max-w-2xl mx-auto">This is your constitution, your anchor, your true north. It remains constant across all sprints.</p>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-        <CodexClient initialLaws={laws} />
-      </div>
+      <CodexClient 
+        initialDoctrineLaws={doctrineLaws} 
+        initialGateKeeperLaws={gateKeeperLaws}
+        initialBlades={blades}
+        initialProfile={profile}
+      />
     </div>
   );
 }

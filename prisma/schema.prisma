@@ -194,9 +194,59 @@ model SixWeekSummary {
 
 model CodexLaw {
   id          String   @id @default(cuid())
+  type        String   @default("doctrine") // "doctrine" or "gatekeeper"
   title       String
   description String?
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model CodexBlade {
+  id          String   @id @default(cuid())
+  title       String
+  orderIndex  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  principles  CodexBladePrinciple[]
+}
+
+model CodexBladePrinciple {
+  id          String     @id @default(cuid())
+  bladeId     String
+  blade       CodexBlade @relation(fields: [bladeId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  orderIndex  Int        @default(0)
+}
+
+model CodexProfile {
+  id                 String   @id @default("global")
+  longTermGoal       String?
+  finalMission       String?
+  signatureName      String?
+  signatureDate      DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model LLMSettings {
+  id           String   @id @default("global")
+  provider     String   @default("ollama") // "ollama" | "openai"
+  endpointUrl  String   @default("http://localhost:11434/api/generate")
+  apiKey       String?  // nullable for local LLMs
+  modelName    String   @default("llama3")
+  systemPrompt String?
+  proxyEnabled Boolean  @default(false)
+  proxyUrl     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model ChatMessage {
+  id             String   @id @default(cuid())
+  role           String   // "user", "assistant", "system"
+  content        String
+  createdAt      DateTime @default(now())
 }

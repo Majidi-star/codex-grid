@@ -9,6 +9,9 @@ import DeepWorkChart from "@/components/shared/DeepWorkChart";
 import EnergySparkline from "@/components/dashboard/EnergySparkline";
 import Link from "next/link";
 import PageGrid from "@/components/shared/PageGrid";
+
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   const sprint = await getActiveSprint();
   if (!sprint) {
