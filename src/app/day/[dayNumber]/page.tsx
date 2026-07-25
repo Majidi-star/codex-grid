@@ -94,26 +94,26 @@ export default async function DayPage({ params }: { params: { dayNumber: string 
       <PageGrid
         sidebar={
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 min-h-[300px]">
-            <MovesList moves={dailyLog.moves} dailyLogId={dailyLog.id} />
+            <LeftoversList leftovers={dailyLog.leftovers} />
+            <div className="border-t border-gray-100 dark:border-gray-700 pt-6 mt-6">
+              <MovesList moves={dailyLog.moves} dailyLogId={dailyLog.id} />
+            </div>
           </div>
         }
         main={
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 min-h-[300px]">
+            <OpsLog dailyLog={dailyLog} entries={dailyLog.opsLogEntries} locked={dailyLog.locked} />
+          </div>
+        }
+        bottom={
           <>
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 min-h-[300px]">
-              <OpsLog dailyLog={dailyLog} entries={dailyLog.opsLogEntries} locked={dailyLog.locked} />
-            </div>
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-              <LeftoversList leftovers={dailyLog.leftovers} />
-            </div>
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
               <DayStartReview dailyLog={dailyLog} />
             </div>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+              <DayEndReview dailyLog={dailyLog} />
+            </div>
           </>
-        }
-        bottom={
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-            <DayEndReview dailyLog={dailyLog} />
-          </div>
         }
       />
 

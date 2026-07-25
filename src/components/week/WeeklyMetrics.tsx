@@ -79,6 +79,9 @@ export default function WeeklyMetrics({ summary }: { summary: WeeklySummary }) {
             disabled={summary.locked}
             className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white dark:bg-gray-900 dark:border-gray-700 dark:text-white outline-none focus:border-brand-500 disabled:opacity-75 disabled:cursor-not-allowed"
           />
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
+            Avg: {((parseFloat(deepWorkHours) || 0) / 7).toFixed(1)} hrs/day
+          </p>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Total Work Hours</label>
@@ -90,6 +93,9 @@ export default function WeeklyMetrics({ summary }: { summary: WeeklySummary }) {
             disabled={summary.locked}
             className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white dark:bg-gray-900 dark:border-gray-700 dark:text-white outline-none focus:border-brand-500 disabled:opacity-75 disabled:cursor-not-allowed"
           />
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
+            Avg: {((parseFloat(workHours) || 0) / 7).toFixed(1)} hrs/day
+          </p>
         </div>
       </div>
 
