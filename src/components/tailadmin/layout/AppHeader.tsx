@@ -1,7 +1,6 @@
 "use client";
 import { ThemeToggleButton } from "@/components/tailadmin/common/ThemeToggleButton";
 import NotificationDropdown from "@/components/tailadmin/header/NotificationDropdown";
-import UserDropdown from "@/components/tailadmin/header/UserDropdown";
 import { useSidebar } from "@/components/tailadmin/context/SidebarContext";
 import Image from "next/image";
 import Link from "next/link";
@@ -168,9 +167,6 @@ const AppHeader: React.FC = () => {
            <NotificationDropdown /> 
             {/* <!-- Notification Menu Area --> */}
           </div>
-          {/* <!-- User Area --> */}
-          <UserDropdown /> 
-    
         </div>
       </div>
     </header>

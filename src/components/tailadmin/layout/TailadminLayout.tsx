@@ -5,7 +5,7 @@ import AppHeader from "@/components/tailadmin/layout/AppHeader";
 import AppSidebar from "@/components/tailadmin/layout/AppSidebar";
 import Backdrop from "@/components/tailadmin/layout/Backdrop";
 import React from "react";
-import { GridIcon, CalenderIcon, UserCircleIcon, PageIcon, PlugInIcon } from "@/components/tailadmin/icons/index";
+import { GridIcon, CalenderIcon, UserCircleIcon, PageIcon, PlugInIcon, ListIcon } from "@/components/tailadmin/icons/index";
 
 export default function TailadminLayout({
   children,
@@ -32,6 +32,7 @@ export default function TailadminLayout({
     { name: "Weekly Summaries", icon: <PageIcon />, path: `/week/${currentWeekNumber}/summary` },
     { name: "Six-Week Reviews", icon: <PageIcon />, path: `/block/${currentBlockNumber}` },
     { name: "Setup / New Sprint", icon: <PlugInIcon />, path: "/setup" },
+    { name: "All Sprints", icon: <ListIcon />, path: "/sprints" },
   ];
 
   return (
