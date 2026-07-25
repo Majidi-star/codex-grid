@@ -31,21 +31,21 @@ export default function CodexHeatmap({
   return (
     <div>
       <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Codex Violations Heatmap</h2>
-      <div className="flex gap-4">
-        {/* Y-axis labels (Weeks) */}
-        <div className="flex flex-col justify-between py-1 text-xs text-gray-400">
-          <span>W1</span>
-          <span>W4</span>
-          <span>W8</span>
-          <span>W12</span>
+      <div className="flex gap-4 overflow-x-auto pb-2">
+        {/* Y-axis labels (Days of week) */}
+        <div className="flex flex-col justify-between py-1 text-xs text-gray-400 font-medium">
+          <span>Mon</span>
+          <span>Wed</span>
+          <span>Fri</span>
+          <span>Sun</span>
         </div>
         
-        {/* Heatmap Grid (7 columns = 7 days of week, 12 rows = 12 weeks) */}
-        <div className="grid grid-cols-7 gap-1.5 flex-1 max-w-sm">
+        {/* Heatmap Grid (7 rows = 7 days, auto columns = weeks) */}
+        <div className="grid grid-rows-7 grid-flow-col gap-1.5 flex-1">
           {cells.map((cell) => (
             <div
               key={cell.dayNumber}
-              className={`w-full aspect-square rounded-sm ${getCellColor(cell.violationsCount)} transition-colors duration-200 hover:ring-2 hover:ring-brand-500`}
+              className={`w-5 h-5 sm:w-6 sm:h-6 rounded-sm ${getCellColor(cell.violationsCount)} transition-colors duration-200 hover:ring-2 hover:ring-brand-500 flex-shrink-0`}
               title={`Day ${cell.dayNumber}: ${cell.violationsCount} violation${cell.violationsCount === 1 ? '' : 's'}`}
             />
           ))}

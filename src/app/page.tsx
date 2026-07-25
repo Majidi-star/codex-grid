@@ -130,16 +130,16 @@ export default async function DashboardPage() {
         }
         main={
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-            <CodexHeatmap logs={allLogs as any} />
-          </div>
-        }
-        bottom={
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
             <DeepWorkChart 
               categories={deepWorkCategories} 
               data={deepWorkData} 
               target={deepWorkTarget} 
             />
+          </div>
+        }
+        bottom={
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+            <CodexHeatmap logs={allLogs as any} />
           </div>
         }
       />
