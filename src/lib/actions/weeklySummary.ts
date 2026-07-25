@@ -61,7 +61,18 @@ export async function computeWeeklyAutoSums(sprintId: string, weekNumber: number
 
   for (const log of dailyLogs) {
     if (log.codexLawViolated && log.codexLawViolated !== "None") {
-      codexViolations[log.codexLawViolated] = (codexViolations[log.codexLawViolated] || 0) + 1;
+      let laws: string[] = [];
+      try {
+        laws = JSON.parse(log.codexLawViolated);
+        if (!Array.isArray(laws)) laws = [log.codexLawViolated];
+      } catch {
+        laws = [log.codexLawViolated];
+      }
+      for (const law of laws) {
+        if (law && law !== "None") {
+          codexViolations[law] = (codexViolations[law] || 0) + 1;
+        }
+      }
     }
 
     for (const ops of log.opsLogEntries) {

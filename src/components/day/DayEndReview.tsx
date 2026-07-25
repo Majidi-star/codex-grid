@@ -6,12 +6,40 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { CODEX_LAW } from "@/lib/enums";
 
 export default function DayEndReview({ dailyLog }: { dailyLog: DailyLog }) {
+  const parseJsonArray = (str: string | null) => {
+    if (!str || str === "None") return [];
+    try {
+      const parsed = JSON.parse(str);
+      return Array.isArray(parsed) ? parsed : [str];
+    } catch {
+      return [str];
+    }
+  };
+
   const [sleepTime, setSleepTime] = useState(dailyLog.sleepTime || "");
-  const [codexLawAtRisk, setCodexLawAtRisk] = useState(dailyLog.codexLawAtRisk || "None");
+  const [codexLawAtRisk, setCodexLawAtRisk] = useState<string[]>(parseJsonArray(dailyLog.codexLawAtRisk));
   const [preventionMethod, setPreventionMethod] = useState(dailyLog.preventionMethod || "");
-  const [codexLawViolated, setCodexLawViolated] = useState(dailyLog.codexLawViolated || "None");
+  const [codexLawViolated, setCodexLawViolated] = useState<string[]>(parseJsonArray(dailyLog.codexLawViolated));
   const [whyViolated, setWhyViolated] = useState(dailyLog.whyViolated || "");
   const [correctionForTomorrow, setCorrectionForTomorrow] = useState(dailyLog.correctionForTomorrow || "");
+
+  const toggleAtRisk = (law: string) => {
+    if (dailyLog.locked) return;
+    if (law === "None") {
+      setCodexLawAtRisk([]);
+      return;
+    }
+    setCodexLawAtRisk(prev => prev.includes(law) ? prev.filter(l => l !== law) : [...prev, law]);
+  };
+
+  const toggleViolated = (law: string) => {
+    if (dailyLog.locked) return;
+    if (law === "None") {
+      setCodexLawViolated([]);
+      return;
+    }
+    setCodexLawViolated(prev => prev.includes(law) ? prev.filter(l => l !== law) : [...prev, law]);
+  };
 
   const debouncedPrevention = useDebounce(preventionMethod, 500);
   const debouncedWhy = useDebounce(whyViolated, 500);
@@ -21,9 +49,9 @@ export default function DayEndReview({ dailyLog }: { dailyLog: DailyLog }) {
   useEffect(() => {
     updateDailyLog(dailyLog.id, {
       sleepTime: debouncedSleep,
-      codexLawAtRisk,
+      codexLawAtRisk: codexLawAtRisk.length > 0 ? JSON.stringify(codexLawAtRisk) : "None",
       preventionMethod: debouncedPrevention,
-      codexLawViolated,
+      codexLawViolated: codexLawViolated.length > 0 ? JSON.stringify(codexLawViolated) : "None",
       whyViolated: debouncedWhy,
       correctionForTomorrow: debouncedCorrection,
     });
@@ -56,18 +84,37 @@ export default function DayEndReview({ dailyLog }: { dailyLog: DailyLog }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Codex Law at Risk</label>
-            <select
-              value={codexLawAtRisk}
-              onChange={(e) => setCodexLawAtRisk(e.target.value)}
-              disabled={dailyLog.locked}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-900 dark:border-gray-700 dark:text-white outline-none focus:border-brand-500 disabled:opacity-75 disabled:cursor-not-allowed"
-            >
-              {CODEX_LAW.map(law => (
-                <option key={law} value={law}>{law}</option>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {CODEX_LAW.filter(l => l !== "None").map(law => (
+                <button
+                  key={law}
+                  type="button"
+                  onClick={() => toggleAtRisk(law)}
+                  disabled={dailyLog.locked}
+                  className={`px-3 py-1.5 text-xs rounded-full font-medium transition border ${
+                    codexLawAtRisk.includes(law)
+                      ? "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-700"
+                      : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 dark:hover:bg-gray-700"
+                  } disabled:opacity-50`}
+                >
+                  {law}
+                </button>
               ))}
-            </select>
+              <button
+                type="button"
+                onClick={() => setCodexLawAtRisk([])}
+                disabled={dailyLog.locked}
+                className={`px-3 py-1.5 text-xs rounded-full font-medium transition border ${
+                  codexLawAtRisk.length === 0
+                    ? "bg-green-100 text-green-800 border-green-300 dark:bg-green-900/40 dark:text-green-300 dark:border-green-700"
+                    : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 dark:hover:bg-gray-700"
+                } disabled:opacity-50`}
+              >
+                None
+              </button>
+            </div>
           </div>
-          {codexLawAtRisk !== "None" && (
+          {codexLawAtRisk.length > 0 && (
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prevention Method</label>
               <input
@@ -84,18 +131,37 @@ export default function DayEndReview({ dailyLog }: { dailyLog: DailyLog }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-gray-100 dark:border-gray-800 pt-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Codex Law Violated</label>
-            <select
-              value={codexLawViolated}
-              onChange={(e) => setCodexLawViolated(e.target.value)}
-              disabled={dailyLog.locked}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-900 dark:border-gray-700 dark:text-white outline-none focus:border-brand-500 disabled:opacity-75 disabled:cursor-not-allowed"
-            >
-              {CODEX_LAW.map(law => (
-                <option key={law} value={law}>{law}</option>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {CODEX_LAW.filter(l => l !== "None").map(law => (
+                <button
+                  key={law}
+                  type="button"
+                  onClick={() => toggleViolated(law)}
+                  disabled={dailyLog.locked}
+                  className={`px-3 py-1.5 text-xs rounded-full font-medium transition border ${
+                    codexLawViolated.includes(law)
+                      ? "bg-red-100 text-red-800 border-red-300 dark:bg-red-900/40 dark:text-red-300 dark:border-red-700"
+                      : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 dark:hover:bg-gray-700"
+                  } disabled:opacity-50`}
+                >
+                  {law}
+                </button>
               ))}
-            </select>
+              <button
+                type="button"
+                onClick={() => setCodexLawViolated([])}
+                disabled={dailyLog.locked}
+                className={`px-3 py-1.5 text-xs rounded-full font-medium transition border ${
+                  codexLawViolated.length === 0
+                    ? "bg-green-100 text-green-800 border-green-300 dark:bg-green-900/40 dark:text-green-300 dark:border-green-700"
+                    : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 dark:hover:bg-gray-700"
+                } disabled:opacity-50`}
+              >
+                None
+              </button>
+            </div>
           </div>
-          {codexLawViolated !== "None" && (
+          {codexLawViolated.length > 0 && (
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Why Violated?</label>
               <input

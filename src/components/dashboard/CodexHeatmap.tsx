@@ -14,8 +14,15 @@ export default function CodexHeatmap({
     const log = logs.find(l => l.dayNumber === dayNumber);
     let violationsCount = 0;
 
-    if (log && (log as any).codexLawViolated && (log as any).codexLawViolated !== "None") {
-      violationsCount = 1;
+    if (log && (log as any).codexLawViolated && (log as any).codexLawViolated !== "None" && (log as any).codexLawViolated !== "[]") {
+      let laws: string[] = [];
+      try {
+        laws = JSON.parse((log as any).codexLawViolated);
+        if (!Array.isArray(laws)) laws = [(log as any).codexLawViolated];
+      } catch {
+        laws = [(log as any).codexLawViolated];
+      }
+      violationsCount = laws.filter(l => l && l !== "None").length;
     }
 
     return { dayNumber, violationsCount };
