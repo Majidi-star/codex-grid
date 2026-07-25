@@ -32,7 +32,7 @@ export default function TailadminLayout({
     { name: "Dashboard", icon: <GridIcon />, path: "/" },
     { name: "Today", icon: <CalenderIcon />, path: `/day/${currentDayNumber}` },
     { name: "Weekly Summaries", icon: <PageIcon />, path: `/week/${currentWeekNumber}/summary` },
-    { name: "Six-Week Reviews", icon: <PageIcon />, path: `/block/${currentBlockNumber}` },
+    { name: "12-Week Reviews", icon: <PageIcon />, path: `/block/${currentBlockNumber}` },
     { name: "Setup / New Sprint", icon: <PlugInIcon />, path: "/setup" },
     { name: "The Codex", icon: <ListIcon />, path: "/codex" },
     { name: "All Sprints", icon: <ListIcon />, path: "/sprints" },

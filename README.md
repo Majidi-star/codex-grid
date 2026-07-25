@@ -18,13 +18,13 @@
 
 ## 🚀 About Sprint OS
 
-Sprint OS is a local-first, highly opinionated operating system for your life and work. Designed around the concept of **6-Week Sprints** and **The Codex**, it helps you align your daily actions with your grandest ambitions. 
+Sprint OS is a local-first, highly opinionated operating system for your life and work. Designed around the concept of **12-Week Sprints** and **The Codex**, it helps you align your daily actions with your grandest ambitions. 
 
 Instead of endless to-do lists, Sprint OS forces you to define your **North Star**, break it down into Weekly Goals, and execute them day-by-day while adhering to your personal Codex of laws and philosophies.
 
 ## ✨ Features
 
-- 🎯 **6-Week Sprint Cycles**: Define your North Star and plan your 6 weeks of focused delivery.
+- 🎯 **12-Week Sprint Cycles**: Define your North Star and plan your 12 weeks of focused delivery.
 - 📜 **The Codex**: A living document of your personal Doctrine, Blades, Gate Keeper laws, and Final Mission.
 - 📅 **Daily & Weekly Tracking**: Log your daily energy, operations, and review your weekly progress.
 - 🤖 **Context-Aware AI Copilot**: A built-in AI assistant that has full context of your Codex and active sprint.
@@ -38,8 +38,8 @@ Instead of endless to-do lists, Sprint OS forces you to define your **North Star
   <img src="docs/images/dashboard.png" alt="Dashboard View" width="800" />
   <p><em>The Sprint OS Dashboard</em></p>
   
-  <img src="docs/images/codex.png" alt="The Codex" width="800" />
-  <p><em>The Codex and AI Copilot Sidebar</em></p>
+  <img src="docs/images/weekly%20summary.png" alt="Weekly Summary" width="800" />
+  <p><em>The Weekly Summary and Plan</em></p>
 </div>
 
 ## 🛠 Tech Stack
