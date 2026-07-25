@@ -11,6 +11,8 @@ import LockButton from "@/components/shared/LockButton";
 import DeepWorkChart from "@/components/shared/DeepWorkChart";
 import { updateWeeklySummary } from "@/lib/actions/weeklySummary";
 import PageGrid from "@/components/shared/PageGrid";
+import Link from "next/link";
+import { ChevronDownIcon } from "@/components/tailadmin/icons";
 
 export default async function WeeklySummaryPage({ params }: { params: { weekNumber: string } }) {
   const sprint = await getActiveSprint();
@@ -86,9 +88,36 @@ export default async function WeeklySummaryPage({ params }: { params: { weekNumb
 
   return (
     <div className="max-w-5xl mx-auto py-8 pb-24">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-        Week {weekNumber} Summary
-      </h1>
+      <div className="flex items-center gap-4 mb-6">
+        {weekNumber > 1 ? (
+          <Link href={`/week/${weekNumber - 1}/summary`} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition text-gray-400 hover:text-gray-900 dark:hover:text-white">
+            <div className="rotate-90">
+              <ChevronDownIcon />
+            </div>
+          </Link>
+        ) : (
+          <div className="p-2 text-transparent cursor-default">
+            <ChevronDownIcon />
+          </div>
+        )}
+        
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          Week {weekNumber} Summary
+        </h1>
+
+        {weekNumber < 12 ? (
+          <Link href={`/week/${weekNumber + 1}/summary`} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition text-gray-400 hover:text-gray-900 dark:hover:text-white">
+            <div className="-rotate-90">
+              <ChevronDownIcon />
+            </div>
+          </Link>
+        ) : (
+          <div className="p-2 text-transparent cursor-default">
+            <ChevronDownIcon />
+          </div>
+        )}
+      </div>
+
 
       {!day7Log && (
         <div className="mb-6 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900 text-amber-800 dark:text-amber-200">

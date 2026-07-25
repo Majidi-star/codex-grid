@@ -62,8 +62,10 @@ export default async function DayPage({ params }: { params: { dayNumber: string 
     }
 
     return (
-      <div className="max-w-5xl mx-auto py-8">
-        <div className="text-center bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+      <div className="max-w-5xl mx-auto py-8 pb-24">
+        <DayHeader dayNumber={requestedDayNumber} date={targetDate} weekNumber={weekNumber} />
+        
+        <div className="text-center bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 mt-6">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
             {isPast ? `Back-filling Day ${requestedDayNumber}` : `Ready to start Day ${requestedDayNumber}?`}
           </h1>

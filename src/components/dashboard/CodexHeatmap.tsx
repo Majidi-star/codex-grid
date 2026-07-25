@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { DailyLog } from "@prisma/client";
+import Link from "next/link";
 
 export default function CodexHeatmap({
   logs
@@ -49,7 +50,8 @@ export default function CodexHeatmap({
         {/* Heatmap Grid (7 rows = 7 days, auto columns = weeks) */}
         <div className="grid grid-rows-7 grid-flow-col gap-1.5 flex-1">
           {cells.map((cell) => (
-            <div
+            <Link
+              href={`/day/${cell.dayNumber}`}
               key={cell.dayNumber}
               className={`w-5 h-5 sm:w-6 sm:h-6 rounded-sm ${getCellColor(cell.violationsCount)} transition-colors duration-200 hover:ring-2 hover:ring-brand-500 flex-shrink-0`}
               title={`Day ${cell.dayNumber}: ${cell.violationsCount} violation${cell.violationsCount === 1 ? '' : 's'}`}

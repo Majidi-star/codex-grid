@@ -11,15 +11,15 @@ export async function completeSprint(id: string) {
   return record;
 }
 
-export async function createSprint(input: { sprintName: string; northStar: string }) {
+export async function createSprint(input: { sprintName: string; northStar: string; startDate?: string }) {
   // Deactivate any existing active sprint just in case
   await prisma.sprint.updateMany({
     where: { status: "active" },
     data: { status: "completed" }
   });
 
-  const startDate = new Date();
-  const endDate = new Date();
+  const startDate = input.startDate ? new Date(input.startDate) : new Date();
+  const endDate = new Date(startDate);
   endDate.setDate(startDate.getDate() + 84); // 12 weeks
 
   const record = await prisma.sprint.create({
