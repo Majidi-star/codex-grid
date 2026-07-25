@@ -1,11 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { DailyLog } from "@prisma/client";
+import { DailyLog, CodexLaw } from "@prisma/client";
 import { updateDailyLog } from "@/lib/actions/dailyLog";
 import { useDebounce } from "@/hooks/useDebounce";
-import { CODEX_LAW } from "@/lib/enums";
 
-export default function DayEndReview({ dailyLog }: { dailyLog: DailyLog }) {
+export default function DayEndReview({ dailyLog, codexLaws }: { dailyLog: DailyLog, codexLaws: CodexLaw[] }) {
   const parseJsonArray = (str: string | null) => {
     if (!str || str === "None") return [];
     try {
@@ -85,19 +84,19 @@ export default function DayEndReview({ dailyLog }: { dailyLog: DailyLog }) {
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Codex Law at Risk</label>
             <div className="flex flex-wrap gap-2 mt-2">
-              {CODEX_LAW.filter(l => l !== "None").map(law => (
+              {codexLaws.map(law => (
                 <button
-                  key={law}
+                  key={law.id}
                   type="button"
-                  onClick={() => toggleAtRisk(law)}
+                  onClick={() => toggleAtRisk(law.title)}
                   disabled={dailyLog.locked}
                   className={`px-3 py-1.5 text-xs rounded-full font-medium transition border ${
-                    codexLawAtRisk.includes(law)
+                    codexLawAtRisk.includes(law.title)
                       ? "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-700"
                       : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 dark:hover:bg-gray-700"
                   } disabled:opacity-50`}
                 >
-                  {law}
+                  {law.title}
                 </button>
               ))}
               <button
@@ -132,19 +131,19 @@ export default function DayEndReview({ dailyLog }: { dailyLog: DailyLog }) {
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Codex Law Violated</label>
             <div className="flex flex-wrap gap-2 mt-2">
-              {CODEX_LAW.filter(l => l !== "None").map(law => (
+              {codexLaws.map(law => (
                 <button
-                  key={law}
+                  key={law.id}
                   type="button"
-                  onClick={() => toggleViolated(law)}
+                  onClick={() => toggleViolated(law.title)}
                   disabled={dailyLog.locked}
                   className={`px-3 py-1.5 text-xs rounded-full font-medium transition border ${
-                    codexLawViolated.includes(law)
+                    codexLawViolated.includes(law.title)
                       ? "bg-red-100 text-red-800 border-red-300 dark:bg-red-900/40 dark:text-red-300 dark:border-red-700"
                       : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 dark:hover:bg-gray-700"
                   } disabled:opacity-50`}
                 >
-                  {law}
+                  {law.title}
                 </button>
               ))}
               <button

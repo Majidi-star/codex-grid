@@ -1,7 +1,6 @@
 "use client";
 import React from "react";
 import { DailyLog } from "@prisma/client";
-import { CODEX_LAW } from "@/lib/enums";
 
 export default function CodexHeatmap({
   logs

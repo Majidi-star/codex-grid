@@ -1,8 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { WeeklySummary } from "@prisma/client";
-import { CODEX_LAW } from "@/lib/enums";
+import { WeeklySummary, CodexLaw } from "@prisma/client";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
@@ -11,18 +10,20 @@ const CODEX_COLORS = ["#E24B4A", "#F09595", "#A32D2D"];
 
 export default function CodexTrendChart({
   summaries,
-  blockNumber
+  blockNumber,
+  codexLaws
 }: {
   summaries: WeeklySummary[];
   blockNumber: number;
+  codexLaws: CodexLaw[];
 }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); return () => setMounted(false); }, []);
 
   const weeks = blockNumber === 1 ? [1, 2, 3, 4, 5, 6] : [7, 8, 9, 10, 11, 12];
   
-  // Laws to track (excluding "None")
-  const activeLaws = CODEX_LAW.filter(law => law !== "None");
+  // Laws to track
+  const activeLaws = codexLaws.map(l => l.title);
 
   const series = activeLaws.map((law, index) => {
     const data = weeks.map(weekNum => {

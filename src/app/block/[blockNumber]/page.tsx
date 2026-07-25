@@ -1,6 +1,7 @@
 import React from "react";
 import { getActiveSprint } from "@/lib/sprint";
 import { prisma } from "@/lib/prisma";
+import { getActiveCodexLaws } from "@/lib/actions/codexLaw";
 import { redirect } from "next/navigation";
 import BlockMetrics from "@/components/block/BlockMetrics";
 import GoalTrendChart from "@/components/block/GoalTrendChart";
@@ -48,6 +49,8 @@ export default async function BlockPage({ params }: { params: { blockNumber: str
     where: { sprintId: sprint.id, isActive: true }
   });
 
+  const codexLaws = await getActiveCodexLaws();
+
   if (!sixWeekSummary) {
     sixWeekSummary = await prisma.sixWeekSummary.create({
       data: { sprintId: sprint.id, blockNumber }
@@ -88,7 +91,7 @@ export default async function BlockPage({ params }: { params: { blockNumber: str
               <GoalTrendChart goals={goals} summaries={allSummaries} />
             </div>
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-              <CodexTrendChart summaries={allSummaries} blockNumber={blockNumber} />
+              <CodexTrendChart summaries={allSummaries} blockNumber={blockNumber} codexLaws={codexLaws} />
             </div>
           </>
         }

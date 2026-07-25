@@ -1,5 +1,6 @@
 import { getActiveSprint } from "@/lib/sprint";
 import { prisma } from "@/lib/prisma";
+import { getActiveCodexLaws } from "@/lib/actions/codexLaw";
 import { getDayNumber, getWeekNumber, getDateForDayNumber } from "@/lib/date";
 import { redirect } from "next/navigation";
 import DayHeader from "@/components/day/DayHeader";
@@ -44,6 +45,8 @@ export default async function DayPage({ params }: { params: { dayNumber: string 
   const northStar = await prisma.northStar.findFirst({
     where: { sprintId: sprint.id, isActive: true }
   });
+
+  const codexLaws = await getActiveCodexLaws();
 
   if (!dailyLog) {
     const isPast = requestedDayNumber < currentDayNumber;
@@ -111,7 +114,7 @@ export default async function DayPage({ params }: { params: { dayNumber: string 
               <DayStartReview dailyLog={dailyLog} />
             </div>
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-              <DayEndReview dailyLog={dailyLog} />
+              <DayEndReview dailyLog={dailyLog} codexLaws={codexLaws} />
             </div>
           </>
         }
