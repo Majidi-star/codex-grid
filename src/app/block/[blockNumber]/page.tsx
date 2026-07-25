@@ -7,6 +7,7 @@ import GoalTrendChart from "@/components/block/GoalTrendChart";
 import CodexTrendChart from "@/components/block/CodexTrendChart";
 import BlockReflections from "@/components/block/BlockReflections";
 import NorthStarReview from "@/components/block/NorthStarReview";
+import PageGrid from "@/components/shared/PageGrid";
 
 export default async function BlockPage({ params }: { params: { blockNumber: string } }) {
   const sprint = await getActiveSprint();
@@ -67,27 +68,31 @@ export default async function BlockPage({ params }: { params: { blockNumber: str
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-        <div className="md:col-span-4 space-y-6">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-            <BlockMetrics summary={sixWeekSummary} />
-          </div>
-        </div>
-        <div className="md:col-span-8 space-y-6">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-            <GoalTrendChart goals={goals} summaries={allSummaries} />
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-            <CodexTrendChart summaries={allSummaries} blockNumber={blockNumber} />
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-            <BlockReflections summary={sixWeekSummary} />
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-            <NorthStarReview summary={sixWeekSummary} originalNorthStar={activeNorthStar?.statement || ""} />
-          </div>
-        </div>
-      </div>
+      <PageGrid
+        sidebar={
+          <>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+              <BlockMetrics summary={sixWeekSummary} />
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+              <BlockReflections summary={sixWeekSummary} />
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+              <NorthStarReview summary={sixWeekSummary} originalNorthStar={activeNorthStar?.statement || ""} />
+            </div>
+          </>
+        }
+        main={
+          <>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+              <GoalTrendChart goals={goals} summaries={allSummaries} />
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+              <CodexTrendChart summaries={allSummaries} blockNumber={blockNumber} />
+            </div>
+          </>
+        }
+      />
     </div>
   );
 }

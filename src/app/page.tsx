@@ -8,7 +8,7 @@ import CodexHeatmap from "@/components/dashboard/CodexHeatmap";
 import DeepWorkChart from "@/components/shared/DeepWorkChart";
 import EnergySparkline from "@/components/dashboard/EnergySparkline";
 import Link from "next/link";
-
+import PageGrid from "@/components/shared/PageGrid";
 export default async function DashboardPage() {
   const sprint = await getActiveSprint();
   if (!sprint) {
@@ -113,26 +113,27 @@ export default async function DashboardPage() {
 
       <StatCards sprint={sprint} todayLog={todayLog} currentSummary={currentSummary} />
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mt-8">
-        {/* Left Column (Daily Overview & Sparklines) - md:col-span-4 */}
-        <div className="md:col-span-4 space-y-6">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 min-h-[300px]">
-            <QuickMoves 
-              moves={todayLog?.moves || []} 
-              leftovers={todayLog?.leftovers || []} 
-              locked={todayLog?.locked || false} 
-            />
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-            <EnergySparkline logs={allLogs as any} currentDayNumber={currentDayNumber} />
-          </div>
-        </div>
-
-        {/* Right Column (Visual Analytics Charts) - md:col-span-8 */}
-        <div className="md:col-span-8 space-y-6">
+      <PageGrid
+        sidebar={
+          <>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 min-h-[300px]">
+              <QuickMoves 
+                moves={todayLog?.moves || []} 
+                leftovers={todayLog?.leftovers || []} 
+                locked={todayLog?.locked || false} 
+              />
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+              <EnergySparkline logs={allLogs as any} currentDayNumber={currentDayNumber} />
+            </div>
+          </>
+        }
+        main={
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
             <CodexHeatmap logs={allLogs as any} />
           </div>
+        }
+        bottom={
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
             <DeepWorkChart 
               categories={deepWorkCategories} 
@@ -140,8 +141,8 @@ export default async function DashboardPage() {
               target={deepWorkTarget} 
             />
           </div>
-        </div>
-      </div>
+        }
+      />
     </div>
   );
 }

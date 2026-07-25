@@ -5,10 +5,12 @@ import WeeklyMetrics from "@/components/week/WeeklyMetrics";
 import GoalProgressTable from "@/components/week/GoalProgressTable";
 import NextWeekBattles from "@/components/week/NextWeekBattles";
 import WeeklyReflections from "@/components/week/WeeklyReflections";
+import WeeklyStateStrip from "@/components/week/WeeklyStateStrip";
 import LearningSection from "@/components/week/LearningSection";
 import LockButton from "@/components/shared/LockButton";
 import DeepWorkChart from "@/components/shared/DeepWorkChart";
 import { updateWeeklySummary } from "@/lib/actions/weeklySummary";
+import PageGrid from "@/components/shared/PageGrid";
 
 export default async function WeeklySummaryPage({ params }: { params: { weekNumber: string } }) {
   const sprint = await getActiveSprint();
@@ -90,12 +92,45 @@ export default async function WeeklySummaryPage({ params }: { params: { weekNumb
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-        {/* Left Column (Metrics & Analytics) - md:col-span-4 */}
-        <div className="md:col-span-4 space-y-6">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-            <WeeklyMetrics summary={weeklySummary} />
-          </div>
+      <PageGrid
+        sidebar={
+          <>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+              <WeeklyMetrics summary={weeklySummary} />
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+              <WeeklyStateStrip summary={weeklySummary} />
+            </div>
+            {hasLearningGoal && (
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+                <LearningSection summary={weeklySummary} />
+              </div>
+            )}
+          </>
+        }
+        main={
+          <>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+              <GoalProgressTable 
+                weeklySummaryId={weeklySummary.id} 
+                goals={goals} 
+                progressList={weeklySummary.goalProgress} 
+                locked={weeklySummary.locked} 
+              />
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+              <WeeklyReflections summary={weeklySummary} />
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+              <NextWeekBattles 
+                weeklySummaryId={weeklySummary.id} 
+                battles={weeklySummary.battles} 
+                locked={weeklySummary.locked} 
+              />
+            </div>
+          </>
+        }
+        bottom={
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
             <DeepWorkChart 
               categories={deepWorkCategories} 
@@ -103,35 +138,8 @@ export default async function WeeklySummaryPage({ params }: { params: { weekNumb
               target={deepWorkTarget} 
             />
           </div>
-        </div>
-
-        {/* Right Column (Goals, Reflections, Battles, Learning) - md:col-span-8 */}
-        <div className="md:col-span-8 space-y-6">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-            <GoalProgressTable 
-              weeklySummaryId={weeklySummary.id} 
-              goals={goals} 
-              progressList={weeklySummary.goalProgress} 
-              locked={weeklySummary.locked} 
-            />
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-            <WeeklyReflections summary={weeklySummary} />
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-            <NextWeekBattles 
-              weeklySummaryId={weeklySummary.id} 
-              battles={weeklySummary.battles} 
-              locked={weeklySummary.locked} 
-            />
-          </div>
-          {hasLearningGoal && (
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-              <LearningSection summary={weeklySummary} />
-            </div>
-          )}
-        </div>
-      </div>
+        }
+      />
 
       <div className="mt-8 flex justify-end">
         <LockButton locked={weeklySummary.locked} onLock={handleLock} onUnlock={handleUnlock} />

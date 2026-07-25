@@ -13,6 +13,7 @@ import DayEndReview from "@/components/day/DayEndReview";
 import LockButton from "@/components/shared/LockButton";
 import { format } from "date-fns";
 import { updateDailyLog } from "@/lib/actions/dailyLog";
+import PageGrid from "@/components/shared/PageGrid";
 
 export default async function DayPage({ params }: { params: { dayNumber: string } }) {
   const sprint = await getActiveSprint();
@@ -90,30 +91,31 @@ export default async function DayPage({ params }: { params: { dayNumber: string 
         <NorthStarStrip northStar={northStar} dailyLog={dailyLog} />
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-        {/* Left Column (Checklists) - md:col-span-4 */}
-        <div className="md:col-span-4 space-y-6">
+      <PageGrid
+        sidebar={
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 min-h-[300px]">
             <LeftoversList leftovers={dailyLog.leftovers} />
             <div className="border-t border-gray-100 dark:border-gray-700 pt-6 mt-6">
               <MovesList moves={dailyLog.moves} dailyLogId={dailyLog.id} />
             </div>
           </div>
-        </div>
-
-        {/* Right Column (Reviews & Ops Log) - md:col-span-8 */}
-        <div className="md:col-span-8 space-y-6">
+        }
+        main={
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
             <DayStartReview dailyLog={dailyLog} />
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 min-h-[300px]">
-            <OpsLog dailyLog={dailyLog} entries={dailyLog.opsLogEntries} locked={dailyLog.locked} />
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-            <DayEndReview dailyLog={dailyLog} />
-          </div>
-        </div>
-      </div>
+        }
+        bottom={
+          <>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 min-h-[300px]">
+              <OpsLog dailyLog={dailyLog} entries={dailyLog.opsLogEntries} locked={dailyLog.locked} />
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+              <DayEndReview dailyLog={dailyLog} />
+            </div>
+          </>
+        }
+      />
 
       <div className="mt-8 flex justify-end">
         <LockButton locked={dailyLog.locked} onLock={handleLock} onUnlock={handleUnlock} />
