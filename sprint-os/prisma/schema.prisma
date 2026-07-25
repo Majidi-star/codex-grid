@@ -1,0 +1,193 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Sprint {
+  id               String   @id @default(cuid())
+  startDate        DateTime
+  endDate          DateTime
+  status           String   @default("active")
+  createdAt        DateTime @default(now())
+
+  northStars       NorthStar[]
+  goals            Goal[]
+  weeklyPlanRows   WeeklyPlanRow[]
+  dailyLogs        DailyLog[]
+  weeklySummaries  WeeklySummary[]
+  sixWeekSummaries SixWeekSummary[]
+}
+
+model NorthStar {
+  id        String   @id @default(cuid())
+  sprintId  String
+  sprint    Sprint   @relation(fields: [sprintId], references: [id])
+  statement String
+  version   Int      @default(1)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Goal {
+  id               String   @id @default(cuid())
+  sprintId         String
+  sprint           Sprint   @relation(fields: [sprintId], references: [id])
+  orderIndex       Int
+  goalText         String
+  successLooksLike String
+  deadline         DateTime
+  whyImportant     String
+  isLearningGoal   Boolean  @default(false)
+
+  weeklyProgress   WeeklyGoalProgress[]
+}
+
+model WeeklyPlanRow {
+  id         String @id @default(cuid())
+  sprintId   String
+  sprint     Sprint @relation(fields: [sprintId], references: [id])
+  weekNumber Int
+  focusArea  String
+  delivery   String
+  difficulty Int
+
+  @@unique([sprintId, weekNumber])
+}
+
+model DailyLog {
+  id                    String   @id @default(cuid())
+  sprintId              String
+  sprint                Sprint   @relation(fields: [sprintId], references: [id])
+  dayNumber             Int
+  date                  DateTime
+  weekNumber            Int
+  locked                Boolean  @default(false)
+  northStarReaffirmed   Boolean  @default(false)
+  criticalTarget        String?
+  criticalReality       String?
+  energyLevel           String?
+  energyWhy             String?
+  focusKiller           String?
+  solutionForTomorrow   String?
+  sleepTime             String?
+  codexLawAtRisk        String   @default("None")
+  preventionMethod      String?
+  codexLawViolated      String   @default("None")
+  whyViolated           String?
+  correctionForTomorrow String?
+  useFreeformOpsLog     Boolean  @default(false)
+  freeformOpsLog        String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  moves         Move[]
+  leftovers     Leftover[]
+  opsLogEntries OpsLogEntry[]
+
+  @@unique([sprintId, dayNumber])
+}
+
+model Move {
+  id         String   @id @default(cuid())
+  dailyLogId String
+  dailyLog   DailyLog @relation(fields: [dailyLogId], references: [id])
+  orderIndex Int
+  taskText   String
+  done       Boolean  @default(false)
+
+  leftoversSourced Leftover[]
+}
+
+model Leftover {
+  id           String   @id @default(cuid())
+  dailyLogId   String
+  dailyLog     DailyLog @relation(fields: [dailyLogId], references: [id])
+  sourceMoveId String?
+  sourceMove   Move?    @relation(fields: [sourceMoveId], references: [id])
+  description  String
+}
+
+model OpsLogEntry {
+  id           String   @id @default(cuid())
+  dailyLogId   String
+  dailyLog     DailyLog @relation(fields: [dailyLogId], references: [id])
+  startTime    String
+  endTime      String
+  activity     String
+  activityType String?
+}
+
+model WeeklySummary {
+  id                      String   @id @default(cuid())
+  sprintId                String
+  sprint                  Sprint   @relation(fields: [sprintId], references: [id])
+  weekNumber              Int
+  locked                  Boolean  @default(false)
+  totalDeepWorkHours      Float?
+  totalWorkHours          Float?
+  whatWorked              String?
+  whatFailed              String?
+  mostRepetitiveIssue     String?
+  redFlags                String?
+  victoryMoment           String?
+  correctionNextWeek      String?
+  codexViolationCountJson String?
+  energyLevel             String?
+  motivation              Int?
+  trustInGoal             Int?
+  manifestSentence        String?
+  reviewedCodexBook       Boolean  @default(false)
+  skillStage              String?
+  vsGreatsComparison      String?
+  needMoreChallenge       Boolean  @default(false)
+  needScheduleUpdate      Boolean  @default(false)
+  analyzedMistakeLedger   Boolean  @default(false)
+
+  goalProgress WeeklyGoalProgress[]
+  battles      NextWeekBattle[]
+
+  @@unique([sprintId, weekNumber])
+}
+
+model WeeklyGoalProgress {
+  id              String        @id @default(cuid())
+  weeklySummaryId String
+  weeklySummary   WeeklySummary @relation(fields: [weeklySummaryId], references: [id])
+  goalId          String
+  goal            Goal          @relation(fields: [goalId], references: [id])
+  progressPercent Int
+  expectedText    String?
+  evidenceText    String?
+
+  @@unique([weeklySummaryId, goalId])
+}
+
+model NextWeekBattle {
+  id              String        @id @default(cuid())
+  weeklySummaryId String
+  weeklySummary   WeeklySummary @relation(fields: [weeklySummaryId], references: [id])
+  orderIndex      Int
+  battleText      String
+}
+
+model SixWeekSummary {
+  id                      String   @id @default(cuid())
+  sprintId                String
+  sprint                  Sprint   @relation(fields: [sprintId], references: [id])
+  blockNumber             Int
+  aggregateDeepWorkHours  Float?
+  aggregateWorkHours      Float?
+  overallGoalTrendJson    String?
+  biggestWin              String?
+  biggestFailure          String?
+  codexViolationTrendJson String?
+  adjustmentsForNextBlock String?
+  northStarStillAccurate  Boolean?
+  updatedNorthStarText    String?
+
+  @@unique([sprintId, blockNumber])
+}
