@@ -6,11 +6,13 @@ const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false })
 
 export default function DeepWorkChart({
   categories,
-  data,
+  deepWorkData,
+  workData,
   target,
 }: {
   categories: string[];
-  data: number[];
+  deepWorkData: number[];
+  workData: number[];
   target: number[];
 }) {
   const [mounted, setMounted] = useState(false);
@@ -18,12 +20,17 @@ export default function DeepWorkChart({
 
   const series = [
     {
-      name: "Actual Hours",
-      type: "column",
-      data,
+      name: "Total Work",
+      type: "area",
+      data: workData,
     },
     {
-      name: "Target Hours",
+      name: "Deep Work",
+      type: "column",
+      data: deepWorkData,
+    },
+    {
+      name: "Target (Deep Work)",
       type: "line",
       data: target,
     },
@@ -33,17 +40,27 @@ export default function DeepWorkChart({
     chart: {
       type: "line",
       toolbar: { show: false },
+      background: 'transparent',
     },
-    colors: ["#2a78d6", "#9ca3af"], // Brand blue for actual, gray for target
+    colors: ["#93c5fd", "#2563eb", "#6b7280"], // Light blue for work, brand blue for deep work, gray for target
     stroke: {
-      width: [0, 2],
+      width: [2, 0, 2],
       curve: "smooth",
-      dashArray: [0, 4] // Dashed line for target
+      dashArray: [0, 0, 4] // Dashed line for target
+    },
+    fill: {
+      type: ['gradient', 'solid', 'solid'],
+      gradient: {
+        shadeIntensity: 1,
+        opacityFrom: 0.4,
+        opacityTo: 0.1,
+        stops: [0, 100]
+      }
     },
     dataLabels: {
       enabled: true,
-      enabledOnSeries: [0], // Only show labels on bars
-      formatter: (val: number) => (val != null && val > 0 ? String(val) : ""),
+      enabledOnSeries: [1], // Only show labels on deep work bars
+      formatter: (val: number) => (val != null && val > 0 ? String(Math.round(val * 10) / 10) : ""),
       style: {
         fontSize: '10px',
         colors: ["#fff"]

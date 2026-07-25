@@ -56,13 +56,19 @@ export default async function WeeklySummaryPage({ params }: { params: { weekNumb
   
   const blockSummaries = await prisma.weeklySummary.findMany({
     where: { sprintId: sprint.id, weekNumber: { in: blockWeeks } },
-    select: { weekNumber: true, totalDeepWorkHours: true }
+    select: { weekNumber: true, totalDeepWorkHours: true, totalWorkHours: true }
   });
 
   const deepWorkData = blockWeeks.map(wNum => {
     const sum = blockSummaries.find(s => s.weekNumber === wNum);
     return sum?.totalDeepWorkHours || 0;
   });
+
+  const workData = blockWeeks.map(wNum => {
+    const sum = blockSummaries.find(s => s.weekNumber === wNum);
+    return sum?.totalWorkHours || 0;
+  });
+
   const deepWorkTarget = Array.from({ length: 6 }, () => 20); // 20h/week
   const deepWorkCategories = blockWeeks.map(w => `W${w}`);
 
@@ -134,7 +140,8 @@ export default async function WeeklySummaryPage({ params }: { params: { weekNumb
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
             <DeepWorkChart 
               categories={deepWorkCategories} 
-              data={deepWorkData} 
+              deepWorkData={deepWorkData}
+              workData={workData} 
               target={deepWorkTarget} 
             />
           </div>
