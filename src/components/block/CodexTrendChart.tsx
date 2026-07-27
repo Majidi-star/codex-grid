@@ -8,6 +8,8 @@ const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false })
 // Using a distinct 3-color set specifically for Codex violations to avoid confusion with goal progress colors
 const CODEX_COLORS = ["#E24B4A", "#F09595", "#A32D2D"]; 
 
+import { useTheme } from "@/components/tailadmin/context/ThemeContext";
+
 export default function CodexTrendChart({
   summaries,
   blockNumber,
@@ -17,6 +19,7 @@ export default function CodexTrendChart({
   blockNumber: number;
   codexLaws: CodexLaw[];
 }) {
+  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); return () => setMounted(false); }, []);
 
@@ -49,6 +52,7 @@ export default function CodexTrendChart({
       type: "bar",
       stacked: true,
       toolbar: { show: false },
+      background: "transparent",
     },
     colors: CODEX_COLORS,
     plotOptions: {
@@ -76,8 +80,11 @@ export default function CodexTrendChart({
       horizontalAlign: 'left',
     },
     grid: {
-      borderColor: "#f1f5f9",
+      borderColor: theme === "dark" ? "#374151" : "#f1f5f9",
       strokeDashArray: 4,
+    },
+    theme: {
+      mode: theme,
     },
   };
 

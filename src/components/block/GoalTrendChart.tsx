@@ -7,6 +7,8 @@ const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false })
 
 const FIXED_COLORS = ["#2a78d6", "#eb6834", "#1baf7a", "#9b51e0", "#f2c94c"];
 
+import { useTheme } from "@/components/tailadmin/context/ThemeContext";
+
 export default function GoalTrendChart({
   goals,
   summaries,
@@ -14,6 +16,7 @@ export default function GoalTrendChart({
   goals: Goal[];
   summaries: (WeeklySummary & { goalProgress: WeeklyGoalProgress[] })[];
 }) {
+  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); return () => setMounted(false); }, []);
 
@@ -40,6 +43,7 @@ export default function GoalTrendChart({
       type: "line",
       toolbar: { show: false },
       zoom: { enabled: false },
+      background: "transparent",
     },
     colors: sortedGoals.map((_, i) => FIXED_COLORS[i % FIXED_COLORS.length]),
     dataLabels: { enabled: false },
@@ -57,11 +61,11 @@ export default function GoalTrendChart({
     },
     legend: { show: false },
     grid: {
-      borderColor: "#f1f5f9",
+      borderColor: theme === "dark" ? "#374151" : "#f1f5f9",
       strokeDashArray: 4,
     },
     theme: {
-      mode: "light", // Assuming light mode base for now, can be responsive
+      mode: theme,
     },
   };
 

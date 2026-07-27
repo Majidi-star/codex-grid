@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 
+import { useTheme } from "@/components/tailadmin/context/ThemeContext";
+
 const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 export default function DeepWorkChart({
@@ -15,6 +17,7 @@ export default function DeepWorkChart({
   workData: number[];
   target: number[];
 }) {
+  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); return () => setMounted(false); }, []);
 
@@ -81,7 +84,7 @@ export default function DeepWorkChart({
       horizontalAlign: 'left',
     },
     grid: {
-      borderColor: "#f1f5f9",
+      borderColor: theme === "dark" ? "#374151" : "#f1f5f9",
       strokeDashArray: 4,
     },
     plotOptions: {
@@ -89,7 +92,10 @@ export default function DeepWorkChart({
         columnWidth: "40%",
         borderRadius: 2,
       }
-    }
+    },
+    theme: {
+      mode: theme,
+    },
   };
 
   if (!mounted) {

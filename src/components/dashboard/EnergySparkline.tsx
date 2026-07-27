@@ -5,6 +5,8 @@ import { DailyLog } from "@prisma/client";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
+import { useTheme } from "@/components/tailadmin/context/ThemeContext";
+
 export default function EnergySparkline({
   logs,
   currentDayNumber
@@ -12,6 +14,7 @@ export default function EnergySparkline({
   logs: DailyLog[];
   currentDayNumber: number;
 }) {
+  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); return () => setMounted(false); }, []);
 
@@ -28,10 +31,12 @@ export default function EnergySparkline({
     return 0;
   });
 
-  const series = [{
-    name: "Energy",
-    data
-  }];
+  const series = [
+    {
+      name: "Energy Level",
+      data: data,
+    },
+  ];
 
   const options: any = {
     chart: {
@@ -39,6 +44,7 @@ export default function EnergySparkline({
       sparkline: { enabled: true },
       toolbar: { show: false },
       zoom: { enabled: false },
+      background: "transparent",
     },
     colors: ["#10b981"], // Emerald green
     fill: {
@@ -46,13 +52,19 @@ export default function EnergySparkline({
       gradient: {
         shadeIntensity: 1,
         opacityFrom: 0.4,
-        opacityTo: 0,
+        opacityTo: 0.05,
         stops: [0, 90, 100]
       }
     },
     stroke: {
       curve: "smooth",
       width: 2,
+    },
+    xaxis: {
+      categories: days.map(d => `Day ${d}`),
+      labels: { show: false },
+      axisBorder: { show: false },
+      axisTicks: { show: false },
     },
     dataLabels: { enabled: false },
     tooltip: {
@@ -72,6 +84,9 @@ export default function EnergySparkline({
     yaxis: {
       min: 0,
       max: 3,
+    },
+    theme: {
+      mode: theme,
     },
   };
 

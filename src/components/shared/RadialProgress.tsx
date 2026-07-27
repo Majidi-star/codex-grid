@@ -5,6 +5,8 @@ import { ApexOptions } from "apexcharts";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
+import { useTheme } from "@/components/tailadmin/context/ThemeContext";
+
 export default function RadialProgress({
   value,
   max = 84,
@@ -16,6 +18,7 @@ export default function RadialProgress({
   label?: string;
   size?: number;
 }) {
+  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); return () => setMounted(false); }, []);
 
@@ -28,6 +31,7 @@ export default function RadialProgress({
       sparkline: {
         enabled: true,
       },
+      background: "transparent",
     },
     plotOptions: {
       radialBar: {
@@ -38,7 +42,7 @@ export default function RadialProgress({
           size: "65%",
         },
         track: {
-          background: "#e5e7eb", // gray-200
+          background: theme === "dark" ? "#374151" : "#e5e7eb", // gray-700 or gray-200
           strokeWidth: "100%",
           margin: 0, 
         },
@@ -47,12 +51,12 @@ export default function RadialProgress({
           name: {
             offsetY: 20,
             show: true,
-            color: "#888",
+            color: theme === "dark" ? "#9ca3af" : "#888",
             fontSize: "12px",
           },
           value: {
             offsetY: -10,
-            color: "#111",
+            color: theme === "dark" ? "#f3f4f6" : "#111",
             fontSize: "24px",
             show: true,
             formatter: function (val) {
