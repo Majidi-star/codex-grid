@@ -29,7 +29,7 @@ export default function CodexHeatmap({
   });
 
   const getCellColor = (count: number) => {
-    if (count === 0) return "bg-gray-100 dark:bg-gray-800";
+    if (count === 0) return "bg-gray-100 dark:bg-gray-700";
     if (count === 1) return "bg-red-200 dark:bg-red-900/40";
     if (count === 2) return "bg-red-400 dark:bg-red-700/70";
     return "bg-red-600 dark:bg-red-500";
@@ -64,7 +64,7 @@ export default function CodexHeatmap({
       <div className="flex items-center gap-2 mt-4 text-xs text-gray-500 dark:text-gray-400">
         <span>Less</span>
         <div className="flex gap-1">
-          <div className="w-3 h-3 rounded-sm bg-gray-100 dark:bg-gray-800" />
+          <div className="w-3 h-3 rounded-sm bg-gray-100 dark:bg-gray-700" />
           <div className="w-3 h-3 rounded-sm bg-red-200 dark:bg-red-900/40" />
           <div className="w-3 h-3 rounded-sm bg-red-400 dark:bg-red-700/70" />
           <div className="w-3 h-3 rounded-sm bg-red-600 dark:bg-red-500" />
