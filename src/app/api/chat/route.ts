@@ -25,7 +25,24 @@ export async function POST(req: NextRequest) {
       where: { status: "active" },
       include: {
         northStars: { where: { isActive: true } },
-        dailyLogs: { orderBy: { dayNumber: "asc" } }
+        goals: { orderBy: { orderIndex: "asc" } },
+        weeklyPlanRows: { orderBy: { weekNumber: "asc" } },
+        dailyLogs: { 
+          orderBy: { dayNumber: "asc" },
+          include: {
+            moves: { orderBy: { orderIndex: "asc" } },
+            leftovers: true,
+            opsLogEntries: { orderBy: { startTime: "asc" } }
+          }
+        },
+        weeklySummaries: {
+          orderBy: { weekNumber: "asc" },
+          include: {
+            goalProgress: { include: { goal: true } },
+            battles: { orderBy: { orderIndex: "asc" } }
+          }
+        },
+        sixWeekSummaries: { orderBy: { blockNumber: "asc" } }
       }
     });
 
@@ -49,11 +66,81 @@ ${blades.map(b => `${b.title}:\n${b.principles.map(p => `  - ${p.title}: ${p.des
 `;
 
     if (activeSprint) {
-      systemPrompt += `Sprint ID: ${activeSprint.id}\nStart Date: ${activeSprint.startDate}\n`;
+      systemPrompt += `Sprint ID: ${activeSprint.id}\nStart Date: ${activeSprint.startDate}\nEnd Date: ${activeSprint.endDate}\n`;
+      
       if (activeSprint.northStars.length > 0) {
         systemPrompt += `North Star: ${activeSprint.northStars[0].statement}\n`;
       }
-      systemPrompt += `Days Logged: ${activeSprint.dailyLogs.length}\n`;
+      
+      if (activeSprint.goals.length > 0) {
+        systemPrompt += `\n[Goals]\n`;
+        activeSprint.goals.forEach(g => {
+          systemPrompt += `- ${g.goalText} (Deadline: ${g.deadline})\n`;
+          systemPrompt += `  Success: ${g.successLooksLike}\n`;
+          systemPrompt += `  Why: ${g.whyImportant}\n`;
+        });
+      }
+
+      if (activeSprint.weeklyPlanRows.length > 0) {
+        systemPrompt += `\n[Weekly Plan Rows]\n`;
+        activeSprint.weeklyPlanRows.forEach(w => {
+          systemPrompt += `- Week ${w.weekNumber}: Focus: ${w.focusArea} | Delivery: ${w.delivery} | Diff: ${w.difficulty}\n`;
+        });
+      }
+
+      if (activeSprint.dailyLogs.length > 0) {
+        systemPrompt += `\n[Daily Logs]\n`;
+        activeSprint.dailyLogs.forEach(d => {
+          systemPrompt += `Day ${d.dayNumber} (Week ${d.weekNumber}, Date: ${d.date})\n`;
+          if (d.criticalTarget) systemPrompt += `  Target: ${d.criticalTarget} -> Reality: ${d.criticalReality || 'Pending'}\n`;
+          if (d.energyLevel) systemPrompt += `  Energy: ${d.energyLevel} (Why: ${d.energyWhy || 'N/A'})\n`;
+          if (d.focusKiller) systemPrompt += `  Focus Killer: ${d.focusKiller}\n`;
+          if (d.codexLawViolated && d.codexLawViolated !== "None") {
+            systemPrompt += `  Violated Law: ${d.codexLawViolated} (Why: ${d.whyViolated || 'N/A'})\n`;
+          }
+          if (d.moves.length > 0) {
+            systemPrompt += `  Moves:\n`;
+            d.moves.forEach(m => {
+              systemPrompt += `    [${m.done ? 'x' : ' '}] ${m.taskText}\n`;
+            });
+          }
+          if (d.opsLogEntries.length > 0) {
+            systemPrompt += `  Ops Log:\n`;
+            d.opsLogEntries.forEach(o => {
+              systemPrompt += `    ${o.startTime}-${o.endTime}: ${o.activity} (${o.activityType || 'Uncategorized'})\n`;
+            });
+          }
+          if (d.useFreeformOpsLog && d.freeformOpsLog) {
+            systemPrompt += `  Freeform Ops Log: ${d.freeformOpsLog}\n`;
+          }
+        });
+      }
+
+      if (activeSprint.weeklySummaries.length > 0) {
+        systemPrompt += `\n[Weekly Summaries]\n`;
+        activeSprint.weeklySummaries.forEach(ws => {
+          systemPrompt += `Week ${ws.weekNumber}:\n`;
+          systemPrompt += `  Deep Work: ${ws.totalDeepWorkHours || 0}h | Total Work: ${ws.totalWorkHours || 0}h\n`;
+          if (ws.whatWorked) systemPrompt += `  Worked: ${ws.whatWorked}\n`;
+          if (ws.whatFailed) systemPrompt += `  Failed: ${ws.whatFailed}\n`;
+          if (ws.goalProgress.length > 0) {
+            systemPrompt += `  Goal Progress:\n`;
+            ws.goalProgress.forEach(gp => {
+              systemPrompt += `    - ${gp.goal.goalText}: ${gp.progressPercent}% (${gp.evidenceText || 'No evidence'})\n`;
+            });
+          }
+        });
+      }
+
+      if (activeSprint.sixWeekSummaries.length > 0) {
+        systemPrompt += `\n[Six Week Summaries]\n`;
+        activeSprint.sixWeekSummaries.forEach(sws => {
+          systemPrompt += `Block ${sws.blockNumber}:\n`;
+          systemPrompt += `  Deep Work: ${sws.aggregateDeepWorkHours || 0}h | Total Work: ${sws.aggregateWorkHours || 0}h\n`;
+          if (sws.biggestWin) systemPrompt += `  Biggest Win: ${sws.biggestWin}\n`;
+          if (sws.biggestFailure) systemPrompt += `  Biggest Failure: ${sws.biggestFailure}\n`;
+        });
+      }
     } else {
       systemPrompt += `No active sprint right now.\n`;
     }

@@ -13,6 +13,7 @@ model Sprint {
   endDate          DateTime
   status           String   @default("active")
   createdAt        DateTime @default(now())
+  deletedAt        DateTime?
 
   northStars       NorthStar[]
   goals            Goal[]
