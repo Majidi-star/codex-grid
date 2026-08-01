@@ -9,10 +9,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "mcp": "tsx src/mcp/index.ts"
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@prisma/client": "^5.15.0",
     "apexcharts": "^6.5.0",
     "clsx": "^2.1.1",

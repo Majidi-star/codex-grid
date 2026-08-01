@@ -144,6 +144,29 @@ export default function SettingsClient({ initialSettings }: { initialSettings: L
           )}
         </div>
       </div>
+
+      <div className="mt-12 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Model Context Protocol (MCP)</h2>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          Sprint OS includes a built-in MCP Server. This allows external LLMs (like Claude Desktop) to connect directly to your local database to read your Codex, manage Sprints, and log your daily Moves.
+        </p>
+        
+        <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 font-mono text-sm overflow-x-auto text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700">
+          <p className="font-semibold mb-2">How to connect Claude Desktop:</p>
+          <p className="mb-2 text-gray-500 text-xs">Add the following to your claude_desktop_config.json:</p>
+          <pre>
+{`{
+  "mcpServers": {
+    "sprint-os": {
+      "command": "npm",
+      "args": ["run", "mcp"],
+      "cwd": "C:\\\\Projects\\\\codex-grid"
+    }
+  }
+}`}
+          </pre>
+        </div>
+      </div>
     </div>
   );
 }

@@ -34,3 +34,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# database and local artifacts
+prisma/dev.db
+prisma/dev.db-journal
+*.sqlite
+*.db
+graphify-out/
+subagents_payload.json
+scratch/
