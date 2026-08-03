@@ -4,52 +4,77 @@ import { TOOL_DEFINITIONS, executeTool } from "@/lib/tools";
 
 export async function POST(req: NextRequest) {
   try {
-    const { message } = await req.json();
+    const { message, sessionId } = await req.json();
 
-    // 1. Fetch LLM Settings
-    const settings = await prisma.lLMSettings.upsert({
-      where: { id: "global" },
-      update: {},
-      create: { id: "global" }
-    });
-
-    // 2. Build Context
-    // Codex
-    const profile = await prisma.codexProfile.findUnique({ where: { id: "global" } });
-    const laws = await prisma.codexLaw.findMany();
-    const doctrine = laws.filter(l => l.type === "doctrine");
-    const gatekeeper = laws.filter(l => l.type === "gatekeeper");
-    const blades = await prisma.codexBlade.findMany({ include: { principles: true } });
-
-    // Active Sprint
-    const activeSprint = await prisma.sprint.findFirst({
-      where: { status: "active" },
-      include: {
-        northStars: { where: { isActive: true } },
-        goals: { orderBy: { orderIndex: "asc" } },
-        weeklyPlanRows: { orderBy: { weekNumber: "asc" } },
-        dailyLogs: { 
-          orderBy: { dayNumber: "asc" },
-          include: {
-            moves: { orderBy: { orderIndex: "asc" } },
-            leftovers: true,
-            opsLogEntries: { orderBy: { startTime: "asc" } }
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        const stepsLog: any[] = [];
+        const sendJSON = (obj: any) => {
+          if (obj.type === "status") {
+            stepsLog.push({
+              status: obj.status,
+              tool: obj.tool,
+              args: obj.args
+            });
           }
-        },
-        weeklySummaries: {
-          orderBy: { weekNumber: "asc" },
-          include: {
-            goalProgress: { include: { goal: true } },
-            battles: { orderBy: { orderIndex: "asc" } }
-          }
-        },
-        sixWeekSummaries: { orderBy: { blockNumber: "asc" } }
-      }
-    });
+          controller.enqueue(encoder.encode(JSON.stringify(obj) + "\n"));
+        };
 
-    let systemPrompt = `You are Sprint OS AI, the ultimate productivity and philosophy copilot for the user.
+        try {
+          // 1. Fetch LLM Settings
+          sendJSON({ type: "status", status: "Initializing Sprint OS..." });
+          const settings = await prisma.lLMSettings.upsert({
+            where: { id: "global" },
+            update: {},
+            create: { id: "global" }
+          });
+
+          // 2. Build Context
+          sendJSON({ type: "status", status: "Fetching Codex & Sprint details..." });
+          const profile = await prisma.codexProfile.findUnique({ where: { id: "global" } });
+          const laws = await prisma.codexLaw.findMany();
+          const doctrine = laws.filter(l => l.type === "doctrine");
+          const gatekeeper = laws.filter(l => l.type === "gatekeeper");
+          const blades = await prisma.codexBlade.findMany({ include: { principles: true } });
+
+          // Active Sprint
+          const activeSprint = await prisma.sprint.findFirst({
+            where: { status: "active" },
+            include: {
+              northStars: { where: { isActive: true } },
+              goals: { orderBy: { orderIndex: "asc" } },
+              weeklyPlanRows: { orderBy: { weekNumber: "asc" } },
+              dailyLogs: { 
+                orderBy: { dayNumber: "asc" },
+                include: {
+                  moves: { orderBy: { orderIndex: "asc" } },
+                  leftovers: true,
+                  opsLogEntries: { orderBy: { startTime: "asc" } }
+                }
+              },
+              weeklySummaries: {
+                orderBy: { weekNumber: "asc" },
+                include: {
+                  goalProgress: { include: { goal: true } },
+                  battles: { orderBy: { orderIndex: "asc" } }
+                }
+              },
+              sixWeekSummaries: { orderBy: { blockNumber: "asc" } }
+            }
+          });
+
+          const now = new Date();
+          const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+          const currentDateTimeString = `${now.toISOString()} (${days[now.getDay()]})`;
+
+          let systemPrompt = `You are Sprint OS AI, the ultimate productivity and philosophy agent for the user.
 Your goal is to help them navigate their active sprint, hold them accountable to their Codex, and answer any questions.
 You have access to tools to modify the database. If the user asks you to create a goal, add a move, log something, or modify their rules, ALWAYS use the appropriate tool.
+
+=== CURRENT TIME ===
+Current Date and Time: ${currentDateTimeString}
+Current Local Time: ${now.toLocaleString()}
 
 === DATA IMPORT RULES ===
 When importing or updating Daily Log and Ops Log details:
@@ -88,224 +113,273 @@ ${blades.map(b => `${b.title}:\n${b.principles.map(p => `  - ${p.title}: ${p.des
 === ACTIVE SPRINT ===
 `;
 
-    if (activeSprint) {
-      systemPrompt += `Sprint ID: ${activeSprint.id}\nStart Date: ${activeSprint.startDate}\nEnd Date: ${activeSprint.endDate}\n`;
-      
-      if (activeSprint.northStars.length > 0) {
-        systemPrompt += `North Star: ${activeSprint.northStars[0].statement}\n`;
-      }
-      
-      if (activeSprint.goals.length > 0) {
-        systemPrompt += `\n[Goals]\n`;
-        activeSprint.goals.forEach(g => {
-          systemPrompt += `- [ID: ${g.id}] ${g.goalText} (Deadline: ${g.deadline})\n`;
-          systemPrompt += `  Success: ${g.successLooksLike}\n`;
-          systemPrompt += `  Why: ${g.whyImportant}\n`;
-        });
-      }
+          if (activeSprint) {
+            systemPrompt += `Sprint ID: ${activeSprint.id}\nStart Date: ${activeSprint.startDate}\nEnd Date: ${activeSprint.endDate}\n`;
+            
+            if (activeSprint.northStars.length > 0) {
+              systemPrompt += `North Star: ${activeSprint.northStars[0].statement}\n`;
+            }
+            
+            if (activeSprint.goals.length > 0) {
+              systemPrompt += `\n[Goals]\n`;
+              activeSprint.goals.forEach(g => {
+                systemPrompt += `- [ID: ${g.id}] ${g.goalText} (Deadline: ${g.deadline})\n`;
+                systemPrompt += `  Success: ${g.successLooksLike}\n`;
+                systemPrompt += `  Why: ${g.whyImportant}\n`;
+              });
+            }
 
-      if (activeSprint.weeklyPlanRows.length > 0) {
-        systemPrompt += `\n[Weekly Plan Rows]\n`;
-        activeSprint.weeklyPlanRows.forEach(w => {
-          systemPrompt += `- Week ${w.weekNumber}: Focus: ${w.focusArea} | Delivery: ${w.delivery} | Diff: ${w.difficulty}\n`;
-        });
-      }
+            if (activeSprint.weeklyPlanRows.length > 0) {
+              systemPrompt += `\n[Weekly Plan Rows]\n`;
+              activeSprint.weeklyPlanRows.forEach(w => {
+                systemPrompt += `- Week ${w.weekNumber}: Focus: ${w.focusArea} | Delivery: ${w.delivery} | Diff: ${w.difficulty}\n`;
+              });
+            }
 
-      if (activeSprint.dailyLogs.length > 0) {
-        systemPrompt += `\n[Daily Logs]\n`;
-        activeSprint.dailyLogs.forEach(d => {
-          systemPrompt += `Day ${d.dayNumber} [Log ID: ${d.id}] (Week ${d.weekNumber}, Date: ${d.date})\n`;
-          if (d.criticalTarget) systemPrompt += `  Target: ${d.criticalTarget} -> Reality: ${d.criticalReality || 'Pending'}\n`;
-          if (d.energyLevel) systemPrompt += `  Energy: ${d.energyLevel} (Why: ${d.energyWhy || 'N/A'})\n`;
-          if (d.focusKiller) systemPrompt += `  Focus Killer: ${d.focusKiller}\n`;
-          if (d.codexLawViolated && d.codexLawViolated !== "None") {
-            systemPrompt += `  Violated Law: ${d.codexLawViolated} (Why: ${d.whyViolated || 'N/A'})\n`;
-          }
-          if (d.moves.length > 0) {
-            systemPrompt += `  Moves:\n`;
-            d.moves.forEach(m => {
-              systemPrompt += `    [Move ID: ${m.id}] [${m.done ? 'x' : ' '}] ${m.taskText}\n`;
-            });
-          }
-          if (d.opsLogEntries.length > 0) {
-            systemPrompt += `  Ops Log:\n`;
-            d.opsLogEntries.forEach(o => {
-              systemPrompt += `    ${o.startTime}-${o.endTime}: ${o.activity} (${o.activityType || 'Uncategorized'})\n`;
-            });
-          }
-          if (d.useFreeformOpsLog && d.freeformOpsLog) {
-            systemPrompt += `  Freeform Ops Log: ${d.freeformOpsLog}\n`;
-          }
-        });
-      }
+            if (activeSprint.dailyLogs.length > 0) {
+              systemPrompt += `\n[Daily Logs]\n`;
+              activeSprint.dailyLogs.forEach(d => {
+                systemPrompt += `Day ${d.dayNumber} [Log ID: ${d.id}] (Week ${d.weekNumber}, Date: ${d.date})\n`;
+                if (d.criticalTarget) systemPrompt += `  Target: ${d.criticalTarget} -> Reality: ${d.criticalReality || 'Pending'}\n`;
+                if (d.energyLevel) systemPrompt += `  Energy: ${d.energyLevel} (Why: ${d.energyWhy || 'N/A'})\n`;
+                if (d.focusKiller) systemPrompt += `  Focus Killer: ${d.focusKiller}\n`;
+                if (d.codexLawViolated && d.codexLawViolated !== "None") {
+                  systemPrompt += `  Violated Law: ${d.codexLawViolated} (Why: ${d.whyViolated || 'N/A'})\n`;
+                }
+                if (d.moves.length > 0) {
+                  systemPrompt += `  Moves:\n`;
+                  d.moves.forEach(m => {
+                    systemPrompt += `    [Move ID: ${m.id}] [${m.done ? 'x' : ' '}] ${m.taskText}\n`;
+                  });
+                }
+                if (d.opsLogEntries.length > 0) {
+                  systemPrompt += `  Ops Log:\n`;
+                  d.opsLogEntries.forEach(o => {
+                    systemPrompt += `    ${o.startTime}-${o.endTime}: ${o.activity} (${o.activityType || 'Uncategorized'})\n`;
+                  });
+                }
+                if (d.useFreeformOpsLog && d.freeformOpsLog) {
+                  systemPrompt += `  Freeform Ops Log: ${d.freeformOpsLog}\n`;
+                }
+              });
+            }
 
-      if (activeSprint.weeklySummaries.length > 0) {
-        systemPrompt += `\n[Weekly Summaries]\n`;
-        activeSprint.weeklySummaries.forEach(ws => {
-          systemPrompt += `Week ${ws.weekNumber}:\n`;
-          systemPrompt += `  Deep Work: ${ws.totalDeepWorkHours || 0}h | Total Work: ${ws.totalWorkHours || 0}h\n`;
-          if (ws.whatWorked) systemPrompt += `  Worked: ${ws.whatWorked}\n`;
-          if (ws.whatFailed) systemPrompt += `  Failed: ${ws.whatFailed}\n`;
-          if (ws.goalProgress.length > 0) {
-            systemPrompt += `  Goal Progress:\n`;
-            ws.goalProgress.forEach(gp => {
-              systemPrompt += `    - ${gp.goal.goalText}: ${gp.progressPercent}% (${gp.evidenceText || 'No evidence'})\n`;
-            });
-          }
-        });
-      }
+            if (activeSprint.weeklySummaries.length > 0) {
+              systemPrompt += `\n[Weekly Summaries]\n`;
+              activeSprint.weeklySummaries.forEach(ws => {
+                systemPrompt += `Week ${ws.weekNumber}:\n`;
+                systemPrompt += `  Deep Work: ${ws.totalDeepWorkHours || 0}h | Total Work: ${ws.totalWorkHours || 0}h\n`;
+                if (ws.whatWorked) systemPrompt += `  Worked: ${ws.whatWorked}\n`;
+                if (ws.whatFailed) systemPrompt += `  Failed: ${ws.whatFailed}\n`;
+                if (ws.goalProgress.length > 0) {
+                  systemPrompt += `  Goal Progress:\n`;
+                  ws.goalProgress.forEach(gp => {
+                    systemPrompt += `    - ${gp.goal.goalText}: ${gp.progressPercent}% (${gp.evidenceText || 'No evidence'})\n`;
+                  });
+                }
+              });
+            }
 
-      if (activeSprint.sixWeekSummaries.length > 0) {
-        systemPrompt += `\n[Six Week Summaries]\n`;
-        activeSprint.sixWeekSummaries.forEach(sws => {
-          systemPrompt += `Block ${sws.blockNumber}:\n`;
-          systemPrompt += `  Deep Work: ${sws.aggregateDeepWorkHours || 0}h | Total Work: ${sws.aggregateWorkHours || 0}h\n`;
-          if (sws.biggestWin) systemPrompt += `  Biggest Win: ${sws.biggestWin}\n`;
-          if (sws.biggestFailure) systemPrompt += `  Biggest Failure: ${sws.biggestFailure}\n`;
-        });
-      }
-    } else {
-      systemPrompt += `No active sprint right now.\n`;
-    }
-
-    if (settings.systemPrompt) {
-      systemPrompt += `\n=== CUSTOM INSTRUCTIONS ===\n${settings.systemPrompt}\n`;
-    }
-
-    // 3. Fetch History
-    const history = await prisma.chatMessage.findMany({
-      orderBy: { createdAt: "asc" }
-    });
-
-    // Add the new user message to history in DB immediately
-    await prisma.chatMessage.create({
-      data: { role: "user", content: message }
-    });
-
-    const messages: any[] = [
-      { role: "system", content: systemPrompt },
-      ...history.map(h => ({ role: h.role, content: h.content })),
-      { role: "user", content: message }
-    ];
-
-    // Dynamically import node-fetch and agent to bypass native fetch limits
-    const fetchMod = await import("node-fetch");
-    const fetch = fetchMod.default;
-    
-    let agent: any = undefined;
-    if (settings.proxyEnabled && settings.proxyUrl) {
-      const { SocksProxyAgent } = await import("socks-proxy-agent");
-      agent = new SocksProxyAgent(settings.proxyUrl);
-    }
-
-    // 4. Recursive Tool Calling Loop
-    let maxIterations = 15;
-    let iteration = 0;
-    let finalReply = "";
-
-    while (iteration < maxIterations) {
-      iteration++;
-      let toolCalls = null;
-      let replyText = "";
-      let messageToAppend = null;
-
-      if (settings.provider === "ollama") {
-        const res = await fetch(settings.endpointUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model: settings.modelName,
-            messages: messages,
-            stream: false,
-            tools: TOOL_DEFINITIONS
-          }),
-          agent
-        });
-        if (!res.ok) throw new Error("Ollama API Error");
-        const data = await res.json() as any;
-        messageToAppend = data.message;
-        replyText = data.message?.content || "";
-        toolCalls = data.message?.tool_calls;
-      } else {
-        const res = await fetch(settings.endpointUrl, {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json",
-            ...(settings.apiKey ? { "Authorization": `Bearer ${settings.apiKey}` } : {})
-          },
-          body: JSON.stringify({
-            model: settings.modelName,
-            messages: messages,
-            stream: false,
-            tools: TOOL_DEFINITIONS
-          }),
-          agent
-        });
-        if (!res.ok) {
-          const err = await res.text();
-          throw new Error(`OpenAI API Error: ${err}`);
-        }
-        const data = await res.json() as any;
-        messageToAppend = data.choices?.[0]?.message;
-        replyText = data.choices?.[0]?.message?.content || "";
-        toolCalls = data.choices?.[0]?.message?.tool_calls;
-      }
-
-      // Append assistant's message to messages
-      if (messageToAppend) {
-        messages.push(messageToAppend);
-      }
-
-      if (toolCalls && toolCalls.length > 0) {
-        // Execute all tool calls
-        for (const tc of toolCalls) {
-          const functionName = tc.function.name;
-          // Ollama passes arguments as object, OpenAI passes them as stringified JSON
-          let functionArgs = {};
-          try {
-            functionArgs = typeof tc.function.arguments === "string" 
-              ? JSON.parse(tc.function.arguments) 
-              : tc.function.arguments;
-          } catch (e) {
-            console.error("Failed to parse function args:", e);
-          }
-          
-          let resultStr = "";
-          try {
-            const result = await executeTool(functionName, functionArgs);
-            resultStr = typeof result === "string" ? result : JSON.stringify(result);
-          } catch (err: any) {
-            resultStr = `Error executing ${functionName}: ${err.message}`;
+            if (activeSprint.sixWeekSummaries.length > 0) {
+              systemPrompt += `\n[Six Week Summaries]\n`;
+              activeSprint.sixWeekSummaries.forEach(sws => {
+                systemPrompt += `Block ${sws.blockNumber}:\n`;
+                systemPrompt += `  Deep Work: ${sws.aggregateDeepWorkHours || 0}h | Total Work: ${sws.aggregateWorkHours || 0}h\n`;
+                if (sws.biggestWin) systemPrompt += `  Biggest Win: ${sws.biggestWin}\n`;
+                if (sws.biggestFailure) systemPrompt += `  Biggest Failure: ${sws.biggestFailure}\n`;
+              });
+            }
+          } else {
+            systemPrompt += `No active sprint right now.\n`;
           }
 
-          // Append tool response
-          messages.push({
-            role: "tool",
-            tool_call_id: tc.id,
-            name: functionName,
-            content: resultStr
+          if (settings.systemPrompt) {
+            systemPrompt += `\n=== CUSTOM INSTRUCTIONS ===\n${settings.systemPrompt}\n`;
+          }
+
+          // 3. Fetch History
+          sendJSON({ type: "status", status: "Aligning message logs..." });
+          const history = await prisma.chatMessage.findMany({
+            where: { chatSessionId: sessionId || null },
+            orderBy: { createdAt: "asc" }
           });
+
+          // Add the new user message to history in DB immediately
+          await prisma.chatMessage.create({
+            data: { role: "user", content: message, chatSessionId: sessionId || null }
+          });
+
+          // If this is the first user message, update title
+          if (sessionId) {
+            const count = await prisma.chatMessage.count({
+              where: { chatSessionId: sessionId }
+            });
+            if (count === 1) {
+              const title = message.length > 25 ? message.substring(0, 25) + "..." : message;
+              await prisma.chatSession.update({
+                where: { id: sessionId },
+                data: { title }
+              });
+            }
+          }
+
+          const messages: any[] = [
+            { role: "system", content: systemPrompt },
+            ...history.map(h => ({ role: h.role, content: h.content })),
+            { role: "user", content: message }
+          ];
+
+          // Dynamically import node-fetch and agent to bypass native fetch limits
+          const fetchMod = await import("node-fetch");
+          const fetch = fetchMod.default;
+          
+          let agent: any = undefined;
+          if (settings.proxyEnabled && settings.proxyUrl) {
+            const { SocksProxyAgent } = await import("socks-proxy-agent");
+            agent = new SocksProxyAgent(settings.proxyUrl);
+          }
+
+          // 4. Recursive Tool Calling Loop
+          let maxIterations = 15;
+          let iteration = 0;
+          let finalReply = "";
+
+          while (iteration < maxIterations) {
+            iteration++;
+            let toolCalls = null;
+            let replyText = "";
+            let messageToAppend = null;
+
+            sendJSON({ type: "status", status: iteration > 1 ? `Re-thinking (step ${iteration})...` : "Thinking..." });
+
+            if (settings.provider === "ollama") {
+              const res = await fetch(settings.endpointUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  model: settings.modelName,
+                  messages: messages,
+                  stream: false,
+                  tools: TOOL_DEFINITIONS
+                }),
+                agent
+              });
+              if (!res.ok) throw new Error("Ollama API Error");
+              const data = await res.json() as any;
+              messageToAppend = data.message;
+              replyText = data.message?.content || "";
+              toolCalls = data.message?.tool_calls;
+            } else {
+              const res = await fetch(settings.endpointUrl, {
+                method: "POST",
+                headers: { 
+                  "Content-Type": "application/json",
+                  ...(settings.apiKey ? { "Authorization": `Bearer ${settings.apiKey}` } : {})
+                },
+                body: JSON.stringify({
+                  model: settings.modelName,
+                  messages: messages,
+                  stream: false,
+                  tools: TOOL_DEFINITIONS
+                }),
+                agent
+              });
+              if (!res.ok) {
+                const err = await res.text();
+                throw new Error(`OpenAI API Error: ${err}`);
+              }
+              const data = await res.json() as any;
+              messageToAppend = data.choices?.[0]?.message;
+              replyText = data.choices?.[0]?.message?.content || "";
+              toolCalls = data.choices?.[0]?.message?.tool_calls;
+            }
+
+            // Append assistant's message to messages
+            if (messageToAppend) {
+              messages.push(messageToAppend);
+            }
+
+            if (toolCalls && toolCalls.length > 0) {
+              // Execute all tool calls
+              for (const tc of toolCalls) {
+                const functionName = tc.function.name;
+                // Ollama passes arguments as object, OpenAI passes them as stringified JSON
+                let functionArgs = {};
+                try {
+                  functionArgs = typeof tc.function.arguments === "string" 
+                    ? JSON.parse(tc.function.arguments) 
+                    : tc.function.arguments;
+                } catch (e) {
+                  console.error("Failed to parse function args:", e);
+                }
+                
+                sendJSON({ 
+                  type: "status", 
+                  status: `Calling tool: ${functionName}`, 
+                  tool: functionName, 
+                  args: functionArgs 
+                });
+
+                let resultStr = "";
+                try {
+                  const result = await executeTool(functionName, functionArgs);
+                  resultStr = typeof result === "string" ? result : JSON.stringify(result);
+                } catch (err: any) {
+                  resultStr = `Error executing ${functionName}: ${err.message}`;
+                }
+
+                sendJSON({ 
+                  type: "status", 
+                  status: `Tool ${functionName} completed.`, 
+                  tool: functionName, 
+                  result: resultStr 
+                });
+
+                // Append tool response
+                messages.push({
+                  role: "tool",
+                  tool_call_id: tc.id,
+                  name: functionName,
+                  content: resultStr
+                });
+              }
+            } else {
+              // No tool calls, we have the final answer
+              finalReply = replyText;
+              break;
+            }
+          }
+
+          // Fallback if max iterations reached
+          if (!finalReply) {
+            finalReply = "I performed some actions but reached the iteration limit before finalizing a response.";
+          }
+
+          // Save assistant reply with steps metadata prepended
+          const contentWithMetadata = `<!--STEPS_JSON:${JSON.stringify(stepsLog)}.STEPS_JSON_END-->${finalReply}`;
+          await prisma.chatMessage.create({
+            data: { role: "assistant", content: contentWithMetadata, chatSessionId: sessionId || null }
+          });
+
+          sendJSON({ type: "reply", reply: finalReply });
+        } catch (err: any) {
+          console.error("Stream Start Error: ", err);
+          sendJSON({ type: "error", error: err.message || "Failed to process chat session" });
+        } finally {
+          controller.close();
         }
-      } else {
-        // No tool calls, we have the final answer
-        finalReply = replyText;
-        break;
       }
-    }
-
-    // Fallback if max iterations reached
-    if (!finalReply) {
-      finalReply = "I performed some actions but reached the iteration limit before finalizing a response.";
-    }
-
-    // Save assistant reply
-    await prisma.chatMessage.create({
-      data: { role: "assistant", content: finalReply }
     });
 
-    return NextResponse.json({ reply: finalReply });
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive"
+      }
+    });
   } catch (error: any) {
     console.error(error);
-    return NextResponse.json({ error: error.message || "Failed to call LLM" }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Failed to initiate server stream" }, { status: 500 });
   }
 }

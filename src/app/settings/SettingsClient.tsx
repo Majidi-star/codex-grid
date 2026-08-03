@@ -46,7 +46,7 @@ export default function SettingsClient({ initialSettings }: { initialSettings: L
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-      <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">AI Copilot Settings</h2>
+      <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">AI Agent Settings</h2>
       
       <div className="space-y-6">
         <div>

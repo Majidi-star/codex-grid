@@ -3,6 +3,74 @@ import React, { useState, useEffect } from "react";
 import { updateDailyLog } from "@/lib/actions/dailyLog";
 import { DailyLog, NorthStar } from "@prisma/client";
 
+// Levenshtein distance calculation
+const getLevenshteinDistance = (a: string, b: string): number => {
+  const tmp: number[][] = [];
+  for (let i = 0; i <= a.length; i++) {
+    tmp[i] = [i];
+  }
+  for (let j = 0; j <= b.length; j++) {
+    tmp[0][j] = j;
+  }
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      tmp[i][j] = Math.min(
+        tmp[i - 1][j] + 1, // deletion
+        tmp[i][j - 1] + 1, // insertion
+        tmp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1) // substitution
+      );
+    }
+  }
+  return tmp[a.length][b.length];
+};
+
+const getSimilarity = (s1: string, s2: string): number => {
+  const longer = s1.length > s2.length ? s1 : s2;
+  const shorter = s1.length > s2.length ? s2 : s1;
+  const longerLength = longer.length;
+  if (longerLength === 0) {
+    return 1.0;
+  }
+  return (longerLength - getLevenshteinDistance(longer, shorter)) / longerLength;
+};
+
+const normalizeText = (text: string): string => {
+  return text
+    .toLowerCase()
+    .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"']/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+};
+
+const checkCloseEnough = (typed: string, target: string): boolean => {
+  const normTyped = normalizeText(typed);
+  const normTarget = normalizeText(target);
+  
+  if (!normTyped) return false;
+  if (normTyped === normTarget) return true;
+
+  // 1. Character-based similarity (Levenshtein distance >= 75%)
+  const levSim = getSimilarity(normTyped, normTarget);
+  if (levSim >= 0.75) return true;
+
+  // 2. Word-based overlap similarity (overlap >= 75% of target words)
+  const typedWords = new Set(normTyped.split(" "));
+  const targetWords = normTarget.split(" ");
+  if (targetWords.length === 0) return false;
+
+  let matchCount = 0;
+  for (const word of targetWords) {
+    if (typedWords.has(word)) {
+      matchCount++;
+    }
+  }
+
+  const wordOverlap = matchCount / targetWords.length;
+  if (wordOverlap >= 0.75) return true;
+
+  return false;
+};
+
 export default function NorthStarStrip({
   northStar,
   dailyLog
@@ -10,15 +78,28 @@ export default function NorthStarStrip({
   northStar: NorthStar;
   dailyLog: DailyLog;
 }) {
-  const [typedText, setTypedText] = useState(dailyLog.northStarReaffirmed ? northStar.statement : "");
+  const [typedText, setTypedText] = useState("");
   const [reaffirmed, setReaffirmed] = useState(dailyLog.northStarReaffirmed);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(`northstar_typed_${dailyLog.id}`);
+    if (saved) {
+      setTypedText(saved);
+      const isMatch = checkCloseEnough(saved, northStar.statement);
+      setReaffirmed(isMatch || dailyLog.northStarReaffirmed);
+    } else {
+      setTypedText(dailyLog.northStarReaffirmed ? northStar.statement : "");
+      setReaffirmed(dailyLog.northStarReaffirmed);
+    }
+  }, [dailyLog.id, dailyLog.northStarReaffirmed, northStar.statement]);
 
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setTypedText(val);
+    localStorage.setItem(`northstar_typed_${dailyLog.id}`, val);
     
-    // Normalize comparison: ignore casing and trim whitespace
-    const isMatch = val.trim().toLowerCase() === northStar.statement.trim().toLowerCase();
+    // Check if it matches close enough
+    const isMatch = checkCloseEnough(val, northStar.statement);
     
     if (isMatch !== reaffirmed) {
       setReaffirmed(isMatch);

@@ -3,6 +3,7 @@ import RadialProgress from "../shared/RadialProgress";
 import { format } from "date-fns";
 import Link from "next/link";
 import { ChevronDownIcon } from "@/components/tailadmin/icons"; // We'll rotate it for left/right
+import DayNavigator from "./DayNavigator";
 
 export default function DayHeader({
   dayNumber,
@@ -29,7 +30,7 @@ export default function DayHeader({
         )}
         
         <div className="text-center min-w-[200px]">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Day {dayNumber}/84</h1>
+          <DayNavigator currentDay={dayNumber} />
           <p className="text-gray-500 mt-1">{format(date, "EEEE, MMMM do, yyyy")} &bull; Week {weekNumber}</p>
         </div>
 

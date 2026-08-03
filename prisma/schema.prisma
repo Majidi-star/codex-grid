@@ -245,9 +245,18 @@ model LLMSettings {
   updatedAt    DateTime @updatedAt
 }
 
+model ChatSession {
+  id        String        @id @default(cuid())
+  title     String        @default("New Chat")
+  createdAt DateTime      @default(now())
+  messages  ChatMessage[]
+}
+
 model ChatMessage {
   id             String   @id @default(cuid())
   role           String   // "user", "assistant", "system"
   content        String
+  chatSessionId  String?
+  chatSession    ChatSession? @relation(fields: [chatSessionId], references: [id], onDelete: Cascade)
   createdAt      DateTime @default(now())
 }

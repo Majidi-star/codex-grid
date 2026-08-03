@@ -68,19 +68,19 @@ const config: Config = {
           950: "#4e1d09",
         },
         gray: {
-          25: "#fcfcfd",
-          50: "#f9fafb",
-          100: "#f2f4f7",
-          200: "#e4e7ec",
-          300: "#d0d5dd",
-          400: "#98a2b3",
-          500: "#667085",
-          600: "#475467",
-          700: "#344054",
-          800: "#1d2939",
-          900: "#101828",
-          950: "#0c111d",
-          dark: "#1a2231",
+          25: "#fbfcfd",
+          50: "#f8fafc",
+          100: "#f1f5f9",
+          200: "#e2e8f0",
+          300: "#cbd5e1",
+          400: "#94a3b8",
+          500: "#64748b",
+          600: "#334155",
+          700: "#1e293b",
+          800: "#131b2e", // modern deep space card background in dark mode
+          900: "#0b0f19", // sleek page layout background in dark mode
+          950: "#05070f", // deepest midnight obsidian for sidebar/header
+          dark: "#0b0f19",
         },
       },
       fontSize: {
